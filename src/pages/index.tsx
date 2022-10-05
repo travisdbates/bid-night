@@ -57,8 +57,8 @@ const Home: NextPage = () => {
         .order("id", { ascending: true });
       console.log({ data });
       return data;
-    }
-    // { refreshInterval: 1000 }
+    },
+    { refreshInterval: 1000 }
   );
 
   return (
