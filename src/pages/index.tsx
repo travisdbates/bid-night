@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import {
   Center,
   Flex,
@@ -10,16 +10,33 @@ import {
   VStack,
   HStack,
   Skeleton,
+  Input,
+  useDisclosure,
+  Button,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Textarea,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import useSWR from "swr";
 
 import { supabase } from "~/lib/supabase";
+import { ChatIcon } from "@chakra-ui/icons";
 
 const baseArray = new Array(250).fill(0);
 
 const Home: NextPage = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [comment, setComment] = useState({
+    index: null,
+    comment: "",
+  });
   const {
     data,
     isValidating: applicationsValidating,
@@ -68,34 +85,52 @@ const Home: NextPage = () => {
                       getInitials={(name) => name}
                     />
                     {data ? (
-                      <SelectField
-                        onChange={async (e) => {
-                          console.log(index + 1, e.target.value);
-                          await supabase
-                            .from("cash_call")
-                            .update({ amount: e.target.value })
-                            .eq("id", index + 1);
-                          applicationsMutate();
-                        }}
-                        value={data[index]?.amount ? data[index].amount : 0}
-                      >
-                        <option value={null}>-</option>
-                        <option value={100}>$100</option>
-                        <option value={500}>$500</option>
-                        <option value={1000}>$1,000</option>
-                        <option value={2000}>$2,000</option>
-                        <option value={3000}>$3,000</option>
-                        <option value={4000}>$4,000</option>
-                        <option value={5000}>$5,000</option>
-                        <option value={10000}>$10,000</option>
-                        <option value={12000}>$12,000</option>
-                        <option value={15000}>$15,000</option>
-                        <option value={20000}>$20,000</option>
-                        <option value={30000}>$30,000</option>
-                        <option value={40000}>$40,000</option>
-                        <option value={50000}>$50,000</option>
-                        <option value={100000}>$100,000</option>
-                      </SelectField>
+                      <>
+                        <SelectField
+                          onChange={async (e) => {
+                            console.log(index + 1, e.target.value);
+                            await supabase
+                              .from("cash_call")
+                              .update({ amount: e.target.value })
+                              .eq("id", index + 1);
+                            applicationsMutate();
+                          }}
+                          value={data[index]?.amount ? data[index].amount : 0}
+                        >
+                          <option value={null}>-</option>
+                          <option value={100}>$100</option>
+                          <option value={500}>$500</option>
+                          <option value={1000}>$1,000</option>
+                          <option value={2000}>$2,000</option>
+                          <option value={3000}>$3,000</option>
+                          <option value={4000}>$4,000</option>
+                          <option value={5000}>$5,000</option>
+                          <option value={10000}>$10,000</option>
+                          <option value={12000}>$12,000</option>
+                          <option value={15000}>$15,000</option>
+                          <option value={20000}>$20,000</option>
+                          <option value={30000}>$30,000</option>
+                          <option value={40000}>$40,000</option>
+                          <option value={50000}>$50,000</option>
+                          <option value={100000}>$100,000</option>
+                        </SelectField>
+                        <Button
+                          onClick={() => {
+                            setComment({
+                              index,
+                              comment: data[index]?.comments
+                                ? data[index].comments
+                                : "",
+                            });
+                            onOpen();
+                          }}
+                          leftIcon={<ChatIcon />}
+                          variant={data[index]?.comments ? "solid" : "outline"}
+                          colorScheme={data[index]?.comments ? "blue" : ""}
+                        >
+                          Comment
+                        </Button>
+                      </>
                     ) : (
                       <Skeleton />
                     )}
@@ -106,6 +141,43 @@ const Home: NextPage = () => {
           </Flex>
         </Center>
       </Center>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add a comment</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Textarea
+              value={comment.comment}
+              onChange={async (e) => {
+                setComment({
+                  index: comment.index,
+                  comment: e.target.value,
+                });
+              }}
+            />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onClose}>
+              Close
+            </Button>
+            <Button
+              onClick={async () => {
+                await supabase
+                  .from("cash_call")
+                  .update({ comments: comment.comment })
+                  .eq("id", comment.index + 1);
+                applicationsMutate();
+                onClose();
+              }}
+              colorScheme="blue"
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
