@@ -21,10 +21,17 @@ import {
   ModalHeader,
   ModalOverlay,
   Textarea,
+  Editable,
+  EditablePreview,
+  EditableInput,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import useSWR from "swr";
+
+import { EditableInputField } from "./Editable";
 
 import { supabase } from "~/lib/supabase";
 import { ChatIcon } from "@chakra-ui/icons";
@@ -50,8 +57,8 @@ const Home: NextPage = () => {
         .order("id", { ascending: true });
       console.log({ data });
       return data;
-    },
-    { refreshInterval: 1000 }
+    }
+    // { refreshInterval: 1000 }
   );
 
   return (
@@ -76,10 +83,15 @@ const Home: NextPage = () => {
               <strong>Bid</strong>Night
             </Text>
             <Divider mb={8} mt={8} />
-            <VStack spacing={8}>
+            <VStack spacing={8} width={"100%"}>
               {baseArray.map((_, index) => {
                 return (
-                  <HStack spacing={8} key={index}>
+                  <Flex
+                    key={index}
+                    width={"100%"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
+                  >
                     <Avatar
                       name={(index + 1).toString()}
                       getInitials={(name) => name}
@@ -114,6 +126,29 @@ const Home: NextPage = () => {
                           <option value={50000}>$50,000</option>
                           <option value={100000}>$100,000</option>
                         </SelectField>
+                        {/* <EditableInputField
+                          value={data[index]?.amount ? data[index].amount : 0}
+                        /> */}
+                        <Editable
+                          defaultValue={
+                            data[index]?.amount ? data[index].amount : "Edit"
+                          }
+                          onSubmit={async (value) => {
+                            console.log(index + 1, value);
+                            await supabase
+                              .from("cash_call")
+                              .update({ amount: value })
+                              .eq("id", index + 1);
+                            applicationsMutate();
+                          }}
+                          border={"1px solid rgba(0,0,0,0.1)"}
+                          borderRadius={8}
+                          paddingX={2}
+                          variant="outline"
+                        >
+                          <EditablePreview />
+                          <EditableInput type={"number"} pattern="\d*" />
+                        </Editable>
                         <Button
                           onClick={() => {
                             setComment({
@@ -124,17 +159,16 @@ const Home: NextPage = () => {
                             });
                             onOpen();
                           }}
-                          leftIcon={<ChatIcon />}
                           variant={data[index]?.comments ? "solid" : "outline"}
                           colorScheme={data[index]?.comments ? "blue" : ""}
                         >
-                          Comment
+                          <ChatIcon />
                         </Button>
                       </>
                     ) : (
                       <Skeleton />
                     )}
-                  </HStack>
+                  </Flex>
                 );
               })}
             </VStack>
