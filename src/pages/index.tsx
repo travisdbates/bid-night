@@ -31,8 +31,6 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import useSWR from "swr";
 
-import { EditableInputField } from "./Editable";
-
 import { supabase } from "~/lib/supabase";
 import { ChatIcon } from "@chakra-ui/icons";
 
@@ -144,7 +142,6 @@ const Home: NextPage = () => {
                           border={"1px solid rgba(0,0,0,0.1)"}
                           borderRadius={8}
                           paddingX={2}
-                          variant="outline"
                         >
                           <EditablePreview />
                           <EditableInput type={"number"} pattern="\d*" />
